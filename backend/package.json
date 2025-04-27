@@ -5,7 +5,7 @@
         "build": "tsc",
         "test": "bun test"
     },
-    "dependencies": { "cors": "^2.8.5", "express": "^5.1.0", "mongoose": "^8.14.0" },
+    "dependencies": { "cors": "^2.8.5", "express": "^5.1.0", "groq-sdk": "^0.20.1", "mongoose": "^8.14.0" },
     "devDependencies": {
         "@types/cors": "^2.8.17",
         "@types/express": "^5.0.1",

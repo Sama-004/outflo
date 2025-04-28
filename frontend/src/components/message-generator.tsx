@@ -26,6 +26,7 @@ const sampleProfile: LinkedInProfile = {
 
 export function MessageGenerator() {
   const [profile, setProfile] = useState<LinkedInProfile>(sampleProfile);
+  //   @ts-ignore
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);

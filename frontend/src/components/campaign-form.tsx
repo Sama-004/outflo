@@ -55,6 +55,7 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
           .split("\n")
           .filter((id) => id.trim() !== ""),
       };
+      console.log("campaign data", campaignData);
 
       if (isEditing && campaign) {
         // await updateCampaign(campaign.id, campaignData);

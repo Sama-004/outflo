@@ -7,6 +7,7 @@ export const Route = createFileRoute("/campaigns/$id")({
 });
 
 function RouteComponent() {
+  // @ts-ignore
   const { id } = Route.useParams();
 
   const handleTest = () => {

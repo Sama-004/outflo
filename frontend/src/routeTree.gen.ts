@@ -13,7 +13,6 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as MessageGeneratorImport } from './routes/message-generator'
 import { Route as IndexImport } from './routes/index'
-import { Route as CampaignsIndexImport } from './routes/campaigns.index'
 import { Route as CampaignsNewImport } from './routes/campaigns.new'
 import { Route as CampaignsIdImport } from './routes/campaigns.$id'
 
@@ -28,12 +27,6 @@ const MessageGeneratorRoute = MessageGeneratorImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const CampaignsIndexRoute = CampaignsIndexImport.update({
-  id: '/campaigns/',
-  path: '/campaigns/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -81,13 +74,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsNewImport
       parentRoute: typeof rootRoute
     }
-    '/campaigns/': {
-      id: '/campaigns/'
-      path: '/campaigns'
-      fullPath: '/campaigns'
-      preLoaderRoute: typeof CampaignsIndexImport
-      parentRoute: typeof rootRoute
-    }
   }
 }
 
@@ -98,7 +84,6 @@ export interface FileRoutesByFullPath {
   '/message-generator': typeof MessageGeneratorRoute
   '/campaigns/$id': typeof CampaignsIdRoute
   '/campaigns/new': typeof CampaignsNewRoute
-  '/campaigns': typeof CampaignsIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -106,7 +91,6 @@ export interface FileRoutesByTo {
   '/message-generator': typeof MessageGeneratorRoute
   '/campaigns/$id': typeof CampaignsIdRoute
   '/campaigns/new': typeof CampaignsNewRoute
-  '/campaigns': typeof CampaignsIndexRoute
 }
 
 export interface FileRoutesById {
@@ -115,31 +99,19 @@ export interface FileRoutesById {
   '/message-generator': typeof MessageGeneratorRoute
   '/campaigns/$id': typeof CampaignsIdRoute
   '/campaigns/new': typeof CampaignsNewRoute
-  '/campaigns/': typeof CampaignsIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/message-generator'
-    | '/campaigns/$id'
-    | '/campaigns/new'
-    | '/campaigns'
+  fullPaths: '/' | '/message-generator' | '/campaigns/$id' | '/campaigns/new'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/message-generator'
-    | '/campaigns/$id'
-    | '/campaigns/new'
-    | '/campaigns'
+  to: '/' | '/message-generator' | '/campaigns/$id' | '/campaigns/new'
   id:
     | '__root__'
     | '/'
     | '/message-generator'
     | '/campaigns/$id'
     | '/campaigns/new'
-    | '/campaigns/'
   fileRoutesById: FileRoutesById
 }
 
@@ -148,7 +120,6 @@ export interface RootRouteChildren {
   MessageGeneratorRoute: typeof MessageGeneratorRoute
   CampaignsIdRoute: typeof CampaignsIdRoute
   CampaignsNewRoute: typeof CampaignsNewRoute
-  CampaignsIndexRoute: typeof CampaignsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -156,7 +127,6 @@ const rootRouteChildren: RootRouteChildren = {
   MessageGeneratorRoute: MessageGeneratorRoute,
   CampaignsIdRoute: CampaignsIdRoute,
   CampaignsNewRoute: CampaignsNewRoute,
-  CampaignsIndexRoute: CampaignsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -172,8 +142,7 @@ export const routeTree = rootRoute
         "/",
         "/message-generator",
         "/campaigns/$id",
-        "/campaigns/new",
-        "/campaigns/"
+        "/campaigns/new"
       ]
     },
     "/": {
@@ -187,9 +156,6 @@ export const routeTree = rootRoute
     },
     "/campaigns/new": {
       "filePath": "campaigns.new.tsx"
-    },
-    "/campaigns/": {
-      "filePath": "campaigns.index.tsx"
     }
   }
 }

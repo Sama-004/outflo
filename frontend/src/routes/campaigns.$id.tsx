@@ -1,4 +1,6 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/campaigns/$id")({
   component: RouteComponent,
@@ -6,7 +8,10 @@ export const Route = createFileRoute("/campaigns/$id")({
 
 function RouteComponent() {
   const { id } = Route.useParams();
-  console.log("campaign id", id);
 
-  return <div className="bg-red-400">test</div>;
+  const handleTest = () => {
+    toast("Event has been created.");
+  };
+
+  return <Button onClick={handleTest}>test</Button>;
 }

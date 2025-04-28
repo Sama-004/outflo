@@ -17,7 +17,6 @@ export function CampaignList() {
   });
 
   if (error) {
-    console.log("error", error);
     return <div>error loading campaings...</div>;
   }
 

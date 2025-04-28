@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +23,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -30,6 +33,58 @@ interface CampaignCardProps {
 
 export function CampaignCard({ campaign }: CampaignCardProps) {
   const isActive = campaign.status === "active";
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async (campaignId: string) => {
+      const response = await fetch(
+        `http://localhost:8080/campaigns/${campaignId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete campaign");
+      }
+
+      return campaignId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+
+      toast("Campaign deleted", {
+        description: (
+          <span className="text-black">
+            The campaign has been successfully deleted
+          </span>
+        ),
+      });
+
+      setIsAlertOpen(false);
+    },
+    onError: (error) => {
+      console.error("Error deleting campaign:", error);
+      toast("Error", {
+        description: (
+          <span className="text-black">
+            {error instanceof Error
+              ? error.message
+              : "Failed to delete campaign"}
+          </span>
+        ),
+      });
+    },
+  });
+
+  const handleDelete = () => {
+    deleteMutation.mutate(campaign._id);
+  };
 
   return (
     <Card>
@@ -70,7 +125,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
           </label>
         </div>
         <div className="flex space-x-2">
-          <AlertDialog>
+          <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="icon">
                 <Trash2 className="h-4 w-4" />
@@ -86,8 +141,18 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Delete
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={handleDelete}
+                  disabled={deleteMutation.isPending}>
+                  {deleteMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { redirect } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 interface CampaignFormProps {
   campaign?: Campaign;
@@ -18,14 +18,37 @@ interface CampaignFormProps {
 export function CampaignForm({ campaign }: CampaignFormProps) {
   const isEditing = !!campaign;
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: campaign?.name || "",
     description: campaign?.description || "",
     status: campaign?.status || "active",
-    leads: campaign?.leads.join("\n") || "",
-    accountIDs: campaign?.accountIDs.join("\n") || "",
+    leads: campaign?.leads?.join("\n") || "",
+    accountIDs: campaign?.accountIDs?.join("\n") || "",
   });
+
+  const createCampaign = async (campaignData: any) => {
+    try {
+      const response = await fetch("http://localhost:8080/campaigns", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(campaignData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create campaign");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("API Error:", error);
+      throw error; // Re-throw to be handled by the calling function
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -49,13 +72,14 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
       const campaignData = {
         name: formData.name,
         description: formData.description,
-        status: formData.status as "active" | "inactive",
+        status: formData.status.toUpperCase(), // Convert to match your backend expectations
         leads: formData.leads.split("\n").filter((lead) => lead.trim() !== ""),
         accountIDs: formData.accountIDs
           .split("\n")
           .filter((id) => id.trim() !== ""),
       };
-      console.log("campaign data", campaignData);
+
+      console.log("Submitting campaign data:", campaignData);
 
       if (isEditing && campaign) {
         // await updateCampaign(campaign.id, campaignData);
@@ -63,19 +87,27 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
           description: "Your changes have been saved",
         });
       } else {
-        // await createCampaign(campaignData);
+        const result = await createCampaign(campaignData);
+        console.log("Campaign created successfully:", result);
         toast("Campaign Created", {
-          description: "Your new campaign is ready",
+          description: (
+            <span className="text-black">Your new campaign is ready</span>
+          ),
+        });
+
+        navigate({
+          to: "/",
         });
       }
-
-      redirect({
-        to: "/",
-        throw: true,
-      });
     } catch (error) {
+      console.error("Form submission error:", error);
       toast("Error", {
-        description: `Failed to ${isEditing ? "update" : "create"} campaign`,
+        description: (
+          <span className="text-black">
+            Failed to {isEditing ? "update" : "create"} campaign:{" "}
+            {error instanceof Error ? error.message : "Unknown error"}
+          </span>
+        ),
       });
     } finally {
       setLoading(false);
@@ -138,7 +170,6 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
                 onChange={handleChange}
                 placeholder="https://linkedin.com/in/profile-1&#10;https://linkedin.com/in/profile-2"
                 rows={4}
-                required
               />
             </div>
 
@@ -149,28 +180,23 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
                 name="accountIDs"
                 value={formData.accountIDs}
                 onChange={handleChange}
-                placeholder="123&#10;456"
+                placeholder="507f1f77bcf86cd799439011&#10;507f191e810c19729de860ea"
                 rows={3}
-                required
               />
+              <div className="text-xs text-gray-500 mt-1">
+                Must be valid MongoDB ObjectIDs (24-character hex strings)
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       <div className="flex justify-end space-x-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            redirect({
-              to: "/",
-              throw: true,
-            })
-          }
-          disabled={loading}>
-          Cancel
-        </Button>
+        <Link to="/">
+          <Button type="button" variant="outline" disabled={loading}>
+            Cancel
+          </Button>
+        </Link>
         <Button type="submit" disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isEditing ? "Update Campaign" : "Create Campaign"}

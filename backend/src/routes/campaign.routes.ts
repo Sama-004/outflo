@@ -28,6 +28,12 @@ router.post("/", campaignController.createCampaign);
 router.put("/:id", campaignController.updateCampaign);
 
 /**
+ * @route PATCH /campaigns/:id
+ * @desc Update campaign status
+ */
+router.patch("/:id", campaignController.updateCampaignStatus);
+
+/**
  * @route DELETE /campaigns/:id
  * @desc Soft delete a campaign (set status to DELETED)
  */

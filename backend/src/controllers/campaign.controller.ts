@@ -45,7 +45,7 @@ export const campaignController = {
 
       // Validate accountIDs are valid ObjectIds
       const invalidAccountIDs = accountIDs.filter(
-        (id: string) => !mongoose.Types.ObjectId.isValid(id),
+        (id: string) => !mongoose.Types.ObjectId.isValid(id)
       );
 
       if (invalidAccountIDs.length > 0) {
@@ -68,6 +68,44 @@ export const campaignController = {
     }
   },
 
+  updateCampaignStatus: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { status } = req.body;
+      let normalizedStatus = status;
+      if (status === "active") {
+        normalizedStatus = "ACTIVE";
+      } else if (status === "inactive") {
+        normalizedStatus = "INACTIVE";
+      }
+
+      if (!["ACTIVE", "INACTIVE"].includes(normalizedStatus)) {
+        res.status(400).json({
+          message: "Status can only be ACTIVE or INACTIVE (or active/inactive)",
+        });
+        return;
+      }
+
+      const updatedCampaign = await Campaign.findOneAndUpdate(
+        { _id: req.params.id, status: { $ne: "DELETED" } },
+        { status: normalizedStatus },
+        { new: true }
+      );
+
+      if (!updatedCampaign) {
+        res
+          .status(404)
+          .json({ message: "Campaign not found or already deleted" });
+        return;
+      }
+
+      res.json(updatedCampaign);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error updating campaign status", error });
+    }
+  },
+
   //Update campaign
   updateCampaign: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -84,7 +122,7 @@ export const campaignController = {
       // Validate accountIDs if provided
       if (accountIDs) {
         const invalidAccountIDs = accountIDs.filter(
-          (id: string) => !mongoose.Types.ObjectId.isValid(id),
+          (id: string) => !mongoose.Types.ObjectId.isValid(id)
         );
 
         if (invalidAccountIDs.length > 0) {
@@ -96,7 +134,7 @@ export const campaignController = {
       const updatedCampaign = await Campaign.findOneAndUpdate(
         { _id: req.params.id, status: { $ne: "DELETED" } },
         { name, description, status, leads, accountIDs },
-        { new: true },
+        { new: true }
       );
 
       if (!updatedCampaign) {
@@ -118,7 +156,7 @@ export const campaignController = {
       const deletedCampaign = await Campaign.findByIdAndUpdate(
         req.params.id,
         { status: "DELETED" },
-        { new: true },
+        { new: true }
       );
 
       if (!deletedCampaign) {

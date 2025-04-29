@@ -38,14 +38,43 @@ export function MessageGenerator() {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  const generatePersonalizedMessage = async (profile: LinkedInProfile) => {
+    try {
+      const response = await fetch(
+        "http://localhost:8080/personalized-message",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(profile),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate message");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("API error:", error);
+      throw error;
+    }
+  };
+
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      //   const response = await generatePersonalizedMessage(profile);
-      //   setMessage(response.message);
+      const response = await generatePersonalizedMessage(profile);
+      setMessage(response.message);
     } catch (error) {
-      toast("Error generating message", {
-        description: "Please try again later",
+      toast.error("Error generating message", {
+        description: (
+          <span className="text-black">
+            error instanceof Error ? error.message : "Please try again later",
+          </span>
+        ),
       });
     } finally {
       setLoading(false);

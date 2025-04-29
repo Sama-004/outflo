@@ -7,15 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 interface CampaignFormProps {
   campaign?: Campaign;
+  updateCampaign?: (id: string, data: any) => Promise<any>;
 }
 
-export function CampaignForm({ campaign }: CampaignFormProps) {
+export function CampaignForm({ campaign, updateCampaign }: CampaignFormProps) {
   const isEditing = !!campaign;
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -27,6 +28,32 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
     leads: campaign?.leads?.join("\n") || "",
     accountIDs: campaign?.accountIDs?.join("\n") || "",
   });
+
+  const generateObjectId = () => {
+    const timestamp = Math.floor(new Date().getTime() / 1000)
+      .toString(16)
+      .padStart(8, "0");
+    const randomPart = Array.from({ length: 16 }, () =>
+      Math.floor(Math.random() * 16).toString(16)
+    ).join("");
+    return timestamp + randomPart;
+  };
+
+  const handleAddObjectId = () => {
+    const newId = generateObjectId();
+    setFormData((prev) => {
+      const currentIds = prev.accountIDs.trim();
+      const newIds = currentIds ? `${currentIds}\n${newId}` : newId;
+      return { ...prev, accountIDs: newIds };
+    });
+
+    toast("ID Generated", {
+      description: (
+        <span className="text-black">Added new MongoDB ObjectID</span>
+      ),
+      duration: 2000,
+    });
+  };
 
   const createCampaign = async (campaignData: any) => {
     try {
@@ -46,7 +73,7 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
       return await response.json();
     } catch (error) {
       console.error("API Error:", error);
-      throw error; // Re-throw to be handled by the calling function
+      throw error;
     }
   };
 
@@ -79,16 +106,21 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
           .filter((id) => id.trim() !== ""),
       };
 
-      console.log("Submitting campaign data:", campaignData);
-
       if (isEditing && campaign) {
-        // await updateCampaign(campaign.id, campaignData);
+        if (!updateCampaign) {
+          throw new Error("Update function not provided");
+        }
+        await updateCampaign(campaign._id, campaignData);
         toast("Campaign Updated", {
-          description: "Your changes have been saved",
+          description: (
+            <span className="text-black">Your changes have been saved</span>
+          ),
+        });
+        navigate({
+          to: "/",
         });
       } else {
-        const result = await createCampaign(campaignData);
-        console.log("Campaign created successfully:", result);
+        await createCampaign(campaignData);
         toast("Campaign Created", {
           description: (
             <span className="text-black">Your new campaign is ready</span>
@@ -175,6 +207,14 @@ export function CampaignForm({ campaign }: CampaignFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="accountIDs">Account IDs (one ID per line)</Label>
+              <Button
+                type="button"
+                size="sm"
+                className="flex items-center"
+                onClick={handleAddObjectId}>
+                <Plus className="h-3 w-3 mr-1" />
+                Generate ID
+              </Button>
               <Textarea
                 id="accountIDs"
                 name="accountIDs"

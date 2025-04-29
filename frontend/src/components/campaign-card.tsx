@@ -32,7 +32,7 @@ interface CampaignCardProps {
 }
 
 export function CampaignCard({ campaign }: CampaignCardProps) {
-  const isActive = campaign.status === "active";
+  const [isActive, setIsActive] = useState(campaign.status === "ACTIVE");
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -82,9 +82,75 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
     },
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async ({
+      campaignId,
+      status,
+    }: {
+      campaignId: string;
+      status: string;
+    }) => {
+      const response = await fetch(
+        `http://localhost:8080/campaigns/${campaignId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: status.toUpperCase() }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Failed to update campaign status"
+        );
+      }
+
+      return { campaignId, status };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+
+      toast(
+        `Campaign ${data.status === "active" ? "activated" : "deactivated"}`,
+        {
+          description: (
+            <span className="text-black">
+              The campaign has been successfully{" "}
+              {data.status === "active" ? "activated" : "deactivated"}
+            </span>
+          ),
+        }
+      );
+    },
+    onError: (error) => {
+      setIsActive(!isActive);
+      console.error("Error updating campaign status:", error);
+      toast("Error", {
+        description: (
+          <span className="text-black">
+            {error instanceof Error
+              ? error.message
+              : "Failed to update campaign status"}
+          </span>
+        ),
+      });
+    },
+  });
+
   const handleDelete = () => {
     deleteMutation.mutate(campaign._id);
   };
+
+  const handleStatusToggle = () => {
+    const newStatus = isActive ? "inactive" : "active";
+    setIsActive(!isActive);
+    statusMutation.mutate({ campaignId: campaign._id, status: newStatus });
+  };
+
+  const displayStatus = campaign.status.toLowerCase();
 
   return (
     <Card>
@@ -92,7 +158,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
         <div className="flex justify-between items-start">
           <CardTitle className="text-xl">{campaign.name}</CardTitle>
           <Badge variant={isActive ? "default" : "secondary"}>
-            {campaign.status}
+            {displayStatus}
           </Badge>
         </div>
         <CardDescription className="line-clamp-2">
@@ -117,11 +183,25 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
       </CardContent>
       <CardFooter className="flex justify-between">
         <div className="flex items-center space-x-2">
-          <Switch checked={isActive} id={`status-${campaign._id}`} />
+          <Switch
+            checked={isActive}
+            id={`status-${campaign._id}`}
+            onCheckedChange={handleStatusToggle}
+            disabled={statusMutation.isPending}
+          />
           <label
             htmlFor={`status-${campaign._id}`}
             className="text-sm cursor-pointer">
-            {isActive ? "Active" : "Inactive"}
+            {statusMutation.isPending ? (
+              <span className="flex items-center">
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Updating...
+              </span>
+            ) : isActive ? (
+              "Active"
+            ) : (
+              "Inactive"
+            )}
           </label>
         </div>
         <div className="flex space-x-2">

@@ -38,7 +38,9 @@ export function MessageGenerator() {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const generatePersonalizedMessage = async (profile: LinkedInProfile) => {
+  const handleGenerate = async () => {
+    setLoading(true);
+    setMessage("");
     try {
       const response = await fetch(
         "http://localhost:8080/personalized-message",
@@ -52,29 +54,44 @@ export function MessageGenerator() {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate message");
+        throw new Error("Failed to start message generation");
       }
 
-      return await response.json();
-    } catch (error) {
-      console.error("API error:", error);
-      throw error;
-    }
-  };
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No reader available for streaming");
+      }
 
-  const handleGenerate = async () => {
-    setLoading(true);
-    try {
-      const response = await generatePersonalizedMessage(profile);
-      setMessage(response.message);
+      const decoder = new TextDecoder();
+      let messageSoFar = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.replace("data: ", "");
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.chunk) {
+                messageSoFar += parsed.chunk;
+                setMessage(messageSoFar);
+              }
+            } catch (e) {
+              console.error("Error parsing chunk:", e);
+            }
+          }
+        }
+      }
     } catch (error) {
       toast.error("Error generating message", {
-        description: (
-          <span className="text-black">
-            error instanceof Error ? error.message : "Please try again later",
-          </span>
-        ),
+        description:
+          error instanceof Error ? error.message : "Please try again later",
       });
     } finally {
       setLoading(false);

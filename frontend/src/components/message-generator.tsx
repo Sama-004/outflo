@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Loader2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import API_URL from "@/lib/api";
 
 const sampleProfile: LinkedInProfile = {
   name: "John Doe",
@@ -42,16 +43,13 @@ export function MessageGenerator() {
     setLoading(true);
     setMessage("");
     try {
-      const response = await fetch(
-        "http://localhost:8080/personalized-message",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(profile),
-        }
-      );
+      const response = await fetch(`${API_URL}/personalized-message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profile),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to start message generation");

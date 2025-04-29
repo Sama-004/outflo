@@ -2,6 +2,7 @@ import type { Campaign } from "@/lib/types";
 import { CampaignCard } from "@/components/campaign-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
+import API_URL from "@/lib/api";
 
 export function CampaignList() {
   const {
@@ -11,7 +12,7 @@ export function CampaignList() {
   } = useQuery<Campaign[]>({
     queryKey: ["campaigns"],
     queryFn: async () => {
-      const response = await fetch("http://localhost:8080/campaigns");
+      const response = await fetch(`${API_URL}/campaigns`);
       return await response.json();
     },
   });

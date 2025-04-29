@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
+import API_URL from "@/lib/api";
 
 interface CampaignFormProps {
   campaign?: Campaign;
@@ -57,7 +58,7 @@ export function CampaignForm({ campaign, updateCampaign }: CampaignFormProps) {
 
   const createCampaign = async (campaignData: any) => {
     try {
-      const response = await fetch("http://localhost:8080/campaigns", {
+      const response = await fetch(`${API_URL}/campaigns`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

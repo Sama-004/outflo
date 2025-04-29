@@ -26,6 +26,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import API_URL from "@/lib/api";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -38,15 +39,12 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (campaignId: string) => {
-      const response = await fetch(
-        `http://localhost:8080/campaigns/${campaignId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/campaigns/${campaignId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -90,16 +88,13 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
       campaignId: string;
       status: string;
     }) => {
-      const response = await fetch(
-        `http://localhost:8080/campaigns/${campaignId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: status.toUpperCase() }),
-        }
-      );
+      const response = await fetch(`${API_URL}/campaigns/${campaignId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: status.toUpperCase() }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();

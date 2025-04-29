@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { CampaignForm } from "@/components/campaign-form";
 import { Loader2 } from "lucide-react";
 import type { Campaign } from "@/lib/types";
+import API_URL from "@/lib/api";
 
 export const Route = createFileRoute("/campaigns/$id")({
   component: RouteComponent,
@@ -19,7 +20,7 @@ function RouteComponent() {
     const fetchCampaign = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8080/campaigns/${id}`);
+        const response = await fetch(`${API_URL}/campaigns/${id}`);
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -44,16 +45,13 @@ function RouteComponent() {
 
   const updateCampaign = async (campaignId: string, campaignData: any) => {
     try {
-      const response = await fetch(
-        `http://localhost:8080/campaigns/${campaignId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(campaignData),
-        }
-      );
+      const response = await fetch(`${API_URL}/campaigns/${campaignId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(campaignData),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
